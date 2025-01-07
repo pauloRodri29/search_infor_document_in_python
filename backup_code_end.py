@@ -53,6 +53,7 @@ def extract_references_from_pdfs(input_files, references_dict, pages_to_extract=
                 found_values = search_references(references_dict, text)
                 if found_values:
                     extracted_data.append({f"Page {page_number}": found_values})
+                    
         except Exception as e:
             logging.error(f"Erro ao processar o arquivo {file}: {e}")
     return extracted_data
@@ -136,7 +137,7 @@ def main():
     headers = ["Pagina"] + list(references_dict.keys())
     
     # Extrair os valores do arquivo
-    extracted_data = extract_references_from_pdfs(input_files, references_dict, start_page=1, max_pages=2)
+    extracted_data = extract_references_from_pdfs(input_files, references_dict)
     
     # Preparar os dados para exibição em tabela
     table = create_table(extracted_data, references_dict)
