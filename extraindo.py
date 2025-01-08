@@ -1,8 +1,8 @@
+import os
 import re
 import pandas as pd
 import logging
 import fitz
-from openpyxl import Workbook
 
 # Configuração do logger
 logging.basicConfig(level=logging.INFO, format="%(levelname)s -----> %(message)s ")
@@ -11,7 +11,6 @@ def extract_info_from_text(patterns, text):
     results = []  # Lista para armazenar os resultados encontrados
     client_info = {}  # Dicionário temporário para armazenar as informações do cliente
     client_number = 1
-    
     while True:
         # Flag para verificar se todos os valores são None
         all_none = True
@@ -62,34 +61,39 @@ def extract_references_from_pdfs(input_files, references_dict, pages_to_extract=
     for file in input_files:
         count_file = 1
         try:
-            # Abrindo o arquivo PDF
-            reader = fitz.open(file)
-            num_pages = reader.page_count
+            if os.path.splitext(file)[1] == ".pdf" and os.path.exists(file):
+                # logging.info(f"Arquivo PDF encontrado: {file}")
+                # Abrindo o arquivo PDF
+                reader = fitz.open(file)
+                num_pages = reader.page_count
 
-            # Determina quais páginas processar
-            if pages_to_extract:
-                pages_to_process = [p for p in pages_to_extract if 0 <= p < num_pages]
-            elif max_pages:
-                pages_to_process = range(min(num_pages, max_pages))
+                # Determina quais páginas processar
+                if pages_to_extract:
+                    pages_to_process = [p for p in pages_to_extract if 0 <= p < num_pages]
+                elif max_pages:
+                    pages_to_process = range(min(num_pages, max_pages))
+                else:
+                    pages_to_process = range(num_pages)
+
+                # Aplica o filtro de página inicial
+                if start_page >= 0:
+                    pages_to_process = [p for p in pages_to_process if p >= start_page]
+
+                # Processa cada página
+                for page_number in pages_to_process:
+                    if page_number < len(reader):
+                        page = reader[page_number]
+                        text = page.get_text()  # Extraindo o texto da página
+                        # logging.info(text)
+                        found_values = extract_info_from_text(references_dict, text)
+                        for value in found_values:
+                            value["Página-Arquivo"] = f" P{page_number} - A{count_file}"  # Adiciona o número da página
+                            extracted_data.append(value)  # Adiciona cada cliente encontrado à lista
+                
+                count_file += 1
+                
             else:
-                pages_to_process = range(num_pages)
-
-            # Aplica o filtro de página inicial
-            if start_page >= 0:
-                pages_to_process = [p for p in pages_to_process if p >= start_page]
-
-            # Processa cada página
-            for page_number in pages_to_process:
-                if page_number < len(reader):
-                    page = reader[page_number]
-                    text = page.get_text()  # Extraindo o texto da página
-                    # logging.info(text)
-                    found_values = extract_info_from_text(references_dict, text)
-                    for value in found_values:
-                        value["Página-Arquivo"] = f" P{page_number} - A{count_file}"  # Adiciona o número da página
-                        extracted_data.append(value)  # Adiciona cada cliente encontrado à lista
-            
-            count_file += 1
+                logging.info(f"Arquivo {file} não suportado..")
 
         except Exception as e:
             logging.error(f"Erro ao processar o arquivo {file}: {e}")
@@ -100,10 +104,7 @@ def extract_references_from_pdfs(input_files, references_dict, pages_to_extract=
 Função responsável por preparar os dados em uma tabela (excel)
 Vai receber paramentros que é os dados achados e o dicionário de referências
 """
-def create_table(extracted_data, references_dict, extension=".xlsx"):
-    """
-    Cria uma tabela em formato DataFrame a partir dos dados extraídos.
-    """
+def create_table(extracted_data, references_dict):
     # Cria uma lista para armazenar os dados formatados
     table_data = []
 
@@ -129,9 +130,6 @@ def create_table(extracted_data, references_dict, extension=".xlsx"):
     return df
 
 def save_table_to_file(dataframe, output_file):
-    """
-    Salva o DataFrame em um arquivo Excel.
-    """
     try:
         # Salva o DataFrame em um arquivo Excel
         dataframe.to_excel(output_file, index=False, sheet_name="Base de dados")
@@ -141,7 +139,7 @@ def save_table_to_file(dataframe, output_file):
 
 # Função principal
 def main():
-    input_files = [ "fatura.pdf"]
+    input_files = [ "fatura-2-3-1.pdf"]
     
     # Dicionário com as referências e expressões regulares
     references_dict = {

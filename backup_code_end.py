@@ -100,7 +100,7 @@ def extract_references_from_pdfs(input_files, references_dict, pages_to_extract=
 Função responsável por preparar os dados em uma tabela (excel)
 Vai receber paramentros que é os dados achados e o dicionário de referências
 """
-def create_table(extracted_data, references_dict, extension=".xlsx"):
+def create_table(extracted_data, references_dict):
     """
     Cria uma tabela em formato DataFrame a partir dos dados extraídos.
     """
@@ -141,7 +141,7 @@ def save_table_to_file(dataframe, output_file):
 
 # Função principal
 def main():
-    input_files = [ "fatura.pdf"]
+    input_files = [ "fatura-2-3-1.pdf"]
     
     # Dicionário com as referências e expressões regulares
     references_dict = {
