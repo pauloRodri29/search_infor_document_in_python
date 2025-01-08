@@ -1,30 +1,38 @@
-import pandas as pd
+import PyPDF2
 import re
 import logging
 import fitz
+from openpyxl import Workbook
+from pdfminer.high_level import extract_text
+import pdfplumber
 
-#  Configuração do logger
+# Configuração do logger
 logging.basicConfig(level=logging.INFO, format="%(levelname)s -----> %(message)s ")
 
-# Função para procurar todas as ocorrências com uma referência específica
+"""Função para procurar o valor com uma referência específica"""
 def search_value(regex, text):
-    matches = re.findall(regex, text)
-    return matches if matches else None
+    matches = []
+    if regex:
+        for match in re.finditer(regex, text):
+            try:
+                matches.append(match.group(1))  # Adiciona todos os grupos encontrados
+            except IndexError:
+                continue  # Caso não encontre o grupo desejado, ignora
+    return matches  # Retorna todas as correspondências encontradas
 
-# Função para procurar todas as referências no texto e agrupar por cliente
+"""Função para procurar todas as referências no texto"""
 def search_references(references_dict, text):
     found_values = {}
-    
-    # Procurar todas as ocorrências de cada referência e agrupar
     for key, regex in references_dict.items():
         if isinstance(regex, dict):  # Verificar se o valor é um subdicionário
             found_values[key] = search_references(regex, text)
         else:
-            found_values[key] = search_value(regex, text)
-    
+            found_values_for_key = search_value(regex, text)  # Buscar todas as ocorrências
+            if found_values_for_key:
+                found_values[key] = found_values_for_key  # Armazenar todas as ocorrências encontradas
     return found_values
 
-# Função para extrair as referências de múltiplos clientes em PDFs
+"""Função para extrair referências de PDFs"""
 def extract_references_from_pdfs(input_files, references_dict, pages_to_extract=None, max_pages=None, start_page=0):
     extracted_data = []
     for file in input_files:
@@ -51,6 +59,7 @@ def extract_references_from_pdfs(input_files, references_dict, pages_to_extract=
             for page_number in pages_to_process:
                 page = reader[page_number]
                 text = page.get_text()  # Extraindo o texto da página
+                # logging.info(f"Texto extraído da página {page_number}: {text}")  # Mostra os primeiros 500 caracteres
                 found_values = search_references(references_dict, text)
                 if found_values:
                     extracted_data.append({f"Page {page_number}": found_values})
@@ -58,32 +67,49 @@ def extract_references_from_pdfs(input_files, references_dict, pages_to_extract=
             logging.error(f"Erro ao processar o arquivo {file}: {e}")
     return extracted_data
 
-# Função para preparar os dados em um DataFrame (pandas)
-def create_dataframe(extracted_data, references_dict):
-    rows = []
-    
-    # Preparar os dados para cada página
+"""
+Função responsável por preparar os dados em uma tabela (excel)
+Vai receber paramentros que é os dados achados e o dicionário de referências
+"""
+def create_table(extracted_data, references_dict):
+    table_data = []
     for page_data in extracted_data:
         for page, values in page_data.items():
             row = [page]  # Adiciona o nome da página
             for key in references_dict.keys():
-                if values.get(key):
-                    # Garantir que os valores extraídos sejam strings únicas e separados por vírgula
-                    values_str = ", ".join(sorted(set(map(str, values.get(key)))))
-                    row.append(values_str)
+                value = values.get(key, "N/A")
+                if isinstance(value, list):  # Se houver múltiplos valores, converte para uma string
+                    row.append(", ".join(value))
                 else:
-                    row.append("N/A")
-            rows.append(row)
-    
-    # Criar o DataFrame com pandas
-    df = pd.DataFrame(rows, columns=["Pagina"] + list(references_dict.keys()))
-    return df
+                    row.append(value)
+            table_data.append(row)
+            
+    return table_data
 
-# Função para salvar os dados em um arquivo Excel com pandas
-def save_to_excel(df, output_file):
-    df.to_excel(output_file, index=False)
+"""
+Função para salvar os dados em um arquivo Excel
+"""
+def save_to_excel(data, headers, output_file):
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Base de dados"
+
+    # Adicionar os cabeçalhos
+    ws.append(headers)
+
+    # Adicionar os dados extraídos
+    for row in data:
+        formatted_row = []
+        for cell in row:
+            if isinstance(cell, (tuple, list)):  # Converte tuplas ou listas para strings
+                formatted_row.append(", ".join(map(str, cell)))
+            else:
+                formatted_row.append(cell)
+        ws.append(formatted_row)
+
+    # Salvar o arquivo
+    wb.save(output_file)
     logging.info(f"Dados salvos com sucesso no arquivo Excel: {output_file}")
-
 # Função principal
 def main():
     input_files = ["fatura-2-3-1.pdf"]
@@ -156,10 +182,10 @@ def main():
     extracted_data = extract_references_from_pdfs(input_files, references_dict)
     
     # # Preparar os dados para exibição em tabela
-    df = create_dataframe(extracted_data, references_dict)
+    table = create_table(extracted_data, references_dict)
 
     # # Salvar os dados no Excel
-    save_to_excel(df, "dados_extraidos.xlsx")
+    save_to_excel(table, headers, "dados_extraidos.xlsx")
     # text = extract_text(input_files[0])
     # logging.info(text)
     
