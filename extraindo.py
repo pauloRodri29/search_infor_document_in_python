@@ -139,7 +139,7 @@ def save_table_to_file(dataframe, output_file):
 
 # Função principal
 def main():
-    input_files = [ "fatura-2-3-1.pdf"]
+    input_files = ["fatura.pdf"]
     
     # Dicionário com as referências e expressões regulares
     references_dict = {
@@ -153,7 +153,7 @@ def main():
         "Instalacao": r"Instalação:\s+(\d+)",
         "Endereço, N°": r"Endereço:\s+((?!STO ANTONIO , 0)[^\n]+)(?=\s+Bairro|$)",
         "Bairro": r"Bairro:\s+([A-Za-z\s]+)(?=\s+Instalação|$)",
-        "Complemento": r"Complemento:\s+([A-Za-z\s]+)(?=\s+Fatura|$)",
+        "Complemento": r"Complemento:\s+([^\n]+)(?=\s+Fatura|$)",
         "N° Fatura": r"Fatura:\s+(\d+)",
         
         "Classe Principal": r"Classe Principal\s*[^0-9]*\s*(\d+)",
@@ -201,7 +201,7 @@ def main():
         # "V.F.: Saldo em Aberto (Preço)": r"Preço\s+([\d\.,]+)",
         # "V.F.: Saldo em Aberto (Valor)": r"Valor\s+([\d\.,]+)",
     }
-    
+       
     # Adicionar uma coluna para contagem de páginas
     headers = ["Referência"] + list(references_dict.keys())
     
