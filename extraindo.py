@@ -141,7 +141,7 @@ def save_table_to_file(dataframe, output_file):
 # Função principal
 def main():
     # input_files = ["fatura.pdf"]
-    input_files = ["fatura-2-3-1.pdf"]
+    input_files = ["fatura.pdf"]
     
     # Dicionário com as referências e expressões regulares
     references_dict = {
@@ -152,6 +152,7 @@ def main():
         # "Municipio": r"Município:\s+([\w\s]+?)(?=\s+Bairro|$)",
         # "Vencimento": r"Vencimento:\s*(\d{2}\-\d{2}\-\d{4})",
         # "Valor_total": r"Valor:\s+([\d,\.]+)",
+        
         "Instalacao": r"Instalação:\s+(\d+)",
         "Endereço, N°": r"Endereço:\s+((?!STO ANTONIO , 0)[^\n]+)(?=\s+Bairro|$)",
         "Bairro": r"Bairro:\s+([A-Za-z\s]+)(?=\s+Instalação|$)",
@@ -165,8 +166,10 @@ def main():
         "Dias Fatura": r"(?<=\bDias Fat\b)(?:\D*\d+){8}\D*(\S+)",
         "Data Leitura Anterior": r"(?<=\bDta\.Leit\.Ant\b|\bDat\.Leit\.Ant\b)(?:\D*\d+){9}\D*(\S+)",
         "Data Leitura Atual": r"(?<=\bDta\.Leit\.Ant\b|\bDat\.Leit\.Ant\b)(?:\D*\d+){12}\D*(\S+)",
+        
         # "Reaviso": r"(?<=\bReaviso\b)",
         # "Corte": r"(?<=\bDta\.Leit\.Ant\b|\bDat\.Leit\.Ant\b)(?:\D*\d+){12}\D*(\S+)",
+        
         "V.T.: Icms(BaseCalculo)": r"ICMS\s+(?:\D*\d+.+?\d+\n){0}([\d,\.]+)",
         "V.T.: Icms(Aliquota)": r"ICMS\s+(?:\D*\d+.+?\d+\n){1}([\d,\.]+)",
         "V.T.: Icms(Valor)": r"ICMS\s+(?:\D*\d+.+?\d+\n){2}([\d,\.]+)",
@@ -176,38 +179,30 @@ def main():
         "V.T.: Pis": r"PIS\s+(?:\D*\d+.+?\d+\n){0}([\d,\.]+)",
         "V.T.: Pis(Aliquota)": r"PIS\s+(?:\D*\d+.+?\d+\n){1}([\d,\.]+)",
         "V.T.: Pis(Valor)": r"PIS\s+(?:\D*\d+.+?\d+\n){2}([\d,\.]+)",
-        # "V.M.: Esp": r"Esp\.\s+([\w\d\.,]+)",
-        # "V.M.: Medidor": r"Medidor\s+([\w\d\.,]+)",
-        # "V.M.: CTE": r"Cte\.\s+([\w\d\.,]+)",
-        # "V.M.: FP": r"%FP\s+([\w\d\.,]+)",
-        # "V.M.: Leitura_Anterior": r"Leit\. Anterior\s+([\d\.,]+)",
-        # "V.M.: Leitura_Atual": r"Leit\. Atual\s+([\d\.,]+)",
-        # "V.M.: Medido": r"Medido\s+([\w\d\.,]+)",
-        # "V.M.: Faturado": r"Faturado\s+([\d\.,]+)",
-        # "V.F.: Consumo(Quantidade)": r"Consumo\s+(?:\D*\d+.+?\d+\n)([\d,\.]+)",
-        # "V.F.: Consumo(Preço)": r"Consumo\s+(?:\D*\d+.+?\d+\n){1}([\d,\.]+)",
-        # "V.F.: Consumo(Valor)": r"ConsuConsumomo\s+(?:\D*\d+.+?\d+\n){2}([\d,\.]+)",
-        "Cip-Ilum Pub Pref Munic(Quantidade)":r"Cip-Ilum Pub Pref Munic\s+([\d\.,]+)",
-        "Cip-Ilum Pub Pref Munic(Preço)":r"Cip-Ilum Pub Pref Munic\s+([\d\.,]+)",
-        'Cip-Ilum Pub Pref Munic(Valor)':r"Cip-Ilum Pub Pref Munic\s+([\d\.,]+)",
-        # "V.F.: Adcional Bandeira (Quantidade)": r"Adicional Bandeira\s+(?:\D*\d+.+?\d+\n){0}([\d,\.]+)",
-        # "V.F.: Adcional Bandeira (Preço)": r"Adicional Bandeira\s+(?:\D*\d+.+?\d+\n){1}([\d,\.]+)",
-        # "V.F.: Adcional Bandeira (Valor)": r"Adicional Bandeira\s+(?:\D*\d+.+?\d+\n){2}([\d,\.]+)",
-        # # "V.F.: Crédito Prazo Atendimento (Quantidade)": r"Valor\s+([\d\.,]+)",
-        # # "V.F.: Crédito Prazo Atendimento (Preço)": r"Preço\s+([\d\.,]+)",
-        # # "V.F.: Crédito Prazo Atendimento (Valor)": r"Valor\s+([\d\.,]+)",
-        # "V.F.: Tributo a Reter IRPJ (Quantidade)": r"Tributo a Reter IRPJ\s+(?:\D*\d+.+?\d+\n){0}([\d,\.]+)",
-        # "V.F.: Tributo a Reter IRPJ (Preço)": r"Tributo a Reter IRPJ\s+(?:\D*\d+.+?\d+\n){1}([\d,\.]+)",
-        # "V.F.: Tributo a Reter IRPJ (Valor)": r"Tributo a Reter IRPJ\s+(?:\D*\d+.+?\d+\n){2}([\d,\.]+)",
-        # "V.F.: Saldo em Aberto (Quantidade)": r"Preço\s+([\d\.,]+)",
-        # "V.F.: Saldo em Aberto (Preço)": r"Preço\s+([\d\.,]+)",
-        # "V.F.: Saldo em Aberto (Valor)": r"Valor\s+([\d\.,]+)",
+        
+        # "V.M.: Esp": r"(\bCAT\b)([A-Z])?\b",
+        "V.M.: Medidor": r"CAT\s+(?:\D*\d+.+?\d+\n){0}([\d,\.]+)",
+        # "V.M.: CTE": r"CAT\s+(?:\D*\d+.+?\d+\n){1}([\d,\.]+)",
+        # "V.M.: FP": r"CAT\s+(?:\D*\d+.+?\d+\n){2}([\d,\.]+)",
+        # "V.M.: Leitura_Anterior": r"CAT\s+(?:\D*\d+.+?\d+\n){3}([\d,\.]+)",
+        # "V.M.: Leitura_Atual": r"CAT\s+(?:\D*\d+.+?\d+\n){4}([\d,\.]+)",
+        # "V.M.: Medido": r"CAT\s+(?:\D*\d+.+?\d+\n){5}([\d,\.]+)",
+        # "V.M.: Faturado": r"CAT\s+(?:\D*\d+.+?\d+\n){6}([\d,\.]+)",
+        
+        # "V.F.: Consumo(Quantidade)": r"Consumo\s+(?:)([\d.,]+)[\s\S]*?",
+        # "V.F.: Consumo(Preço)": r"Consumo\s+(?:)([\d.,]+)[\s\S]*?",
+        # "V.F.: Consumo(Valor)": r"Consumo\s+(?:)([\d.,]+)[\s\S]*?",
+        # "Cip-Ilum Pub Pref Munic (Valor)":r"Cip-Ilum Pub Pref Munic\s+([\d\.,]+)",
+        # "V.F.: Adcional Bandeira (Valor)": r"Adicional Bandeira\s+([\d\.,]+)",
+        # "V.F.: Crédito Prazo Atendimento (Valor)": r"Crédito Prazo Atendimento\s+([\d\.,]+)",
+        # "V.F.: Tributo a Reter IRPJ (Valor) ": r"Tributo a Reter IRPJ\s+([\d\.,]+)",
+        # "V.F.: Saldo em Aberto (Valor)": r"Saldo em aberto\s+([\d\.,]+)",
     }
     # Adicionar uma coluna para contagem de páginas
     headers = ["Referência"] + list(references_dict.keys())
     
     # # # Extrair os valores do arquivo
-    extracted_data = extract_references_from_pdfs(input_files, references_dict)
+    extracted_data = extract_references_from_pdfs(input_files, references_dict, start_page=1)
     # logging.info(extracted_data)
     
     # # Preparar os dados para exibição em tabela

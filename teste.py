@@ -1,62 +1,17 @@
-import re
+from PyPDF2 import PdfReader
 
-# Texto original extraído do PDF
-texto_original = """
-CLIENTE:
-7876076 - SAAE DE CAXIAS AGUA E ESGOTO
-CONTA CONTRATO:
-004000012810
-Endereço:
-STO ANTONIO , 0
-Município:
-CAXIAS
-Bairro:
-JOAO VIANA
-Referência: 09/2024
-Vencimento: 28-10-2024
-Documento:
-610014004445
-Complemento:
-SAAE - CAXIAS
-Valor:
-238291.26
-Empresa:
-C001-EQUATORIAL MARANHÃO
-Local:
-CAXIAS
-Conj.Contrato: CX29B
-Unidade de Leitura: CX29B027
-Referência: 09/2024
-...
-"""
+# Caminho do PDF
+pdf_path = "fatura-2-3-1.pdf"
 
-# Função para organizar as informações de forma mais legível
-def formatar_texto(texto):
-    # Usar expressões regulares para buscar os dados relevantes
-    dados = {}
-    
-    # Buscando os dados do cliente
-    dados['Cliente'] = re.search(r"CLIENTE:\s*(.*)", texto)
-    dados['Conta Contrato'] = re.search(r"CONTA CONTRATO:\s*(\S+)", texto)
-    dados['Endereço'] = re.search(r"Endereço:\s*(.*)", texto)
-    dados['Município'] = re.search(r"Município:\s*(.*)", texto)
-    dados['Bairro'] = re.search(r"Bairro:\s*(.*)", texto)
-    dados['Referência'] = re.search(r"Referência:\s*(.*)", texto)
-    dados['Vencimento'] = re.search(r"Vencimento:\s*(.*)", texto)
-    dados['Documento'] = re.search(r"Documento:\s*(\S+)", texto)
-    dados['Complemento'] = re.search(r"Complemento:\s*(.*)", texto)
-    dados['Valor'] = re.search(r"Valor:\s*([\d,.]+)", texto)
-    
-    # Formatação do resultado
-    resultado = []
-    for chave, valor in dados.items():
-        if valor:
-            resultado.append(f"{chave}: {valor.group(1)}")
-    
-    return '\n'.join(resultado)
+# Lê o PDF
+reader = PdfReader(pdf_path)
+text_data = []
 
-# Formatando o texto
-texto_formatado = formatar_texto(texto_original)
+for page in reader.pages:
+    text_data.append(page.extract_text())
 
-# Exibindo o resultado
-print(texto_formatado)
+# Salva o texto em um arquivo .txt
+with open("dados_extraidos.xlsx", "w", encoding="utf-8") as f:
+    f.write("\n".join(text_data))
+
+print("Texto extraído e salvo em dados_extraidos.txt.")
