@@ -84,8 +84,8 @@ def extract_references_from_pdfs(input_files, references_dict, pages_to_extract=
                     if page_number < len(reader):
                         page = reader[page_number]
                         text = page.get_text()  # Extraindo o texto da página
-                        if page_number == 38:
-                            logging.info(text)
+                        # if page_number == 38:
+                        # logging.info(text)
                         found_values = extract_info_from_text(references_dict, text)
                         for value in found_values:
                             value["Página-Arquivo"] = f" P{page_number} - A{count_file}"  # Adiciona o número da página
@@ -140,8 +140,8 @@ def save_table_to_file(dataframe, output_file):
 
 # Função principal
 def main():
-    input_files = ["fatura.pdf"]
-    # input_files = ["fatura-2-3-1.pdf"]
+    # input_files = ["fatura.pdf"]
+    input_files = ["fatura-2-3-1.pdf"]
     
     # Dicionário com as referências e expressões regulares
     references_dict = {
@@ -167,16 +167,15 @@ def main():
         "Data Leitura Atual": r"(?<=\bDta\.Leit\.Ant\b|\bDat\.Leit\.Ant\b)(?:\D*\d+){12}\D*(\S+)",
         # "Reaviso": r"(?<=\bReaviso\b)",
         # "Corte": r"(?<=\bDta\.Leit\.Ant\b|\bDat\.Leit\.Ant\b)(?:\D*\d+){12}\D*(\S+)",
-        
-        # "V.T.: Icms(BaseCalculo)": r"ICMS\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)",
-        # "V.T.: Icms(Aliquota)": r"ICMS\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)",
-        # "V.T.: Icms(Valor)": r"ICMS\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)",
-        # "V.T.: Cofins": r"COFINS\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)",
-        # "V.T.: Cofins(Aliquota)": r"COFINS\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)",
-        # "V.T.: Cofins(Valor)": r"COFINS\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)",
-        # "V.T.: Pis": r"PIS\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)",
-        # "V.T.: Pis(Aliquota)": r"PIS\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)",
-        # "V.T.: Pis(Valor)": r"PIS\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)",
+        "V.T.: Icms(BaseCalculo)": r"ICMS\s+(?:\D*\d+.+?\d+\n){0}([\d,\.]+)",
+        "V.T.: Icms(Aliquota)": r"ICMS\s+(?:\D*\d+.+?\d+\n){1}([\d,\.]+)",
+        "V.T.: Icms(Valor)": r"ICMS\s+(?:\D*\d+.+?\d+\n){2}([\d,\.]+)",
+        "V.T.: Cofins": r"COFINS\s+(?:\D*\d+.+?\d+\n){0}([\d,\.]+)",
+        "V.T.: Cofins(Aliquota)": r"COFINS\s+(?:\D*\d+.+?\d+\n){1}([\d,\.]+)",
+        "V.T.: Cofins(Valor)": r"COFINS\s+(?:\D*\d+.+?\d+\n){2}([\d,\.]+)",
+        "V.T.: Pis": r"PIS\s+(?:\D*\d+.+?\d+\n){0}([\d,\.]+)",
+        "V.T.: Pis(Aliquota)": r"PIS\s+(?:\D*\d+.+?\d+\n){1}([\d,\.]+)",
+        "V.T.: Pis(Valor)": r"PIS\s+(?:\D*\d+.+?\d+\n){2}([\d,\.]+)",
         # "V.M.: Esp": r"Esp\.\s+([\w\d\.,]+)",
         # "V.M.: Medidor": r"Medidor\s+([\w\d\.,]+)",
         # "V.M.: CTE": r"Cte\.\s+([\w\d\.,]+)",
@@ -185,26 +184,25 @@ def main():
         # "V.M.: Leitura_Atual": r"Leit\. Atual\s+([\d\.,]+)",
         # "V.M.: Medido": r"Medido\s+([\w\d\.,]+)",
         # "V.M.: Faturado": r"Faturado\s+([\d\.,]+)",
-        # "V.F.: Consumo(Quantidade)": r"Consumo\s+([\d\.,]+)",
-        # "V.F.: Consumo(Preço)": r"Preço\s+([\d\.,]+)",
-        # "V.F.: Consumo(Valor)": r"Valor\s+([\d\.,]+)",
-        # "Cip-Ilum Pub Pref Munic(Quantidade)":r"Cip-Ilum Pub Pref Munic\s+([\d\.,]+)",
-        # "Cip-Ilum Pub Pref Munic(Preço)":r"Cip-Ilum Pub Pref Munic\s+([\d\.,]+)",
-        # 'Cip-Ilum Pub Pref Munic(Valor)':r"Cip-Ilum Pub Pref Munic\s+([\d\.,]+)",
-        # "V.F.: Adcional Bandeira (Quantidade)": r"Preço\s+([\d\.,]+)",
-        # "V.F.: Adcional Bandeira (Preço)": r"Preço\s+([\d\.,]+)",
-        # "V.F.: Adcional Bandeira (Valor)": r"Valor\s+([\d\.,]+)",
-        # "V.F.: Crédito Prazo Atendimento (Quantidade)": r"Valor\s+([\d\.,]+)",
-        # "V.F.: Crédito Prazo Atendimento (Preço)": r"Preço\s+([\d\.,]+)",
-        # "V.F.: Crédito Prazo Atendimento (Valor)": r"Valor\s+([\d\.,]+)",
-        # "V.F.: Tributo a Reter IRPJ (Quantidade)": r"Preço\s+([\d\.,]+)",
-        # "V.F.: Tributo a Reter IRPJ (Preço)": r"Preço\s+([\d\.,]+)",
-        # "V.F.: Tributo a Reter IRPJ (Valor)": r"Valor\s+([\d\.,]+)",
+        # "V.F.: Consumo(Quantidade)": r"Consumo\s+(?:\D*\d+.+?\d+\n)([\d,\.]+)",
+        # "V.F.: Consumo(Preço)": r"Consumo\s+(?:\D*\d+.+?\d+\n){1}([\d,\.]+)",
+        # "V.F.: Consumo(Valor)": r"ConsuConsumomo\s+(?:\D*\d+.+?\d+\n){2}([\d,\.]+)",
+        "Cip-Ilum Pub Pref Munic(Quantidade)":r"Cip-Ilum Pub Pref Munic\s+([\d\.,]+)",
+        "Cip-Ilum Pub Pref Munic(Preço)":r"Cip-Ilum Pub Pref Munic\s+([\d\.,]+)",
+        'Cip-Ilum Pub Pref Munic(Valor)':r"Cip-Ilum Pub Pref Munic\s+([\d\.,]+)",
+        # "V.F.: Adcional Bandeira (Quantidade)": r"Adicional Bandeira\s+(?:\D*\d+.+?\d+\n){0}([\d,\.]+)",
+        # "V.F.: Adcional Bandeira (Preço)": r"Adicional Bandeira\s+(?:\D*\d+.+?\d+\n){1}([\d,\.]+)",
+        # "V.F.: Adcional Bandeira (Valor)": r"Adicional Bandeira\s+(?:\D*\d+.+?\d+\n){2}([\d,\.]+)",
+        # # "V.F.: Crédito Prazo Atendimento (Quantidade)": r"Valor\s+([\d\.,]+)",
+        # # "V.F.: Crédito Prazo Atendimento (Preço)": r"Preço\s+([\d\.,]+)",
+        # # "V.F.: Crédito Prazo Atendimento (Valor)": r"Valor\s+([\d\.,]+)",
+        # "V.F.: Tributo a Reter IRPJ (Quantidade)": r"Tributo a Reter IRPJ\s+(?:\D*\d+.+?\d+\n){0}([\d,\.]+)",
+        # "V.F.: Tributo a Reter IRPJ (Preço)": r"Tributo a Reter IRPJ\s+(?:\D*\d+.+?\d+\n){1}([\d,\.]+)",
+        # "V.F.: Tributo a Reter IRPJ (Valor)": r"Tributo a Reter IRPJ\s+(?:\D*\d+.+?\d+\n){2}([\d,\.]+)",
         # "V.F.: Saldo em Aberto (Quantidade)": r"Preço\s+([\d\.,]+)",
         # "V.F.: Saldo em Aberto (Preço)": r"Preço\s+([\d\.,]+)",
         # "V.F.: Saldo em Aberto (Valor)": r"Valor\s+([\d\.,]+)",
     }
-       
     # Adicionar uma coluna para contagem de páginas
     headers = ["Referência"] + list(references_dict.keys())
     
