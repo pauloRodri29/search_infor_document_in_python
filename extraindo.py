@@ -16,7 +16,7 @@ def extract_info_from_text(patterns, text):
         all_none = True
         
         for key, regex in patterns.items():
-            match = re.findall(regex, text, flags=re.IGNORECASE)  # Busca o padrão no texto
+            match = re.findall(regex, text, flags=re.IGNORECASE | re.DOTALL)  # Busca o padrão no texto
             
             if match:
                 # Se match for uma lista de tuplas (com grupos de captura), a primeira tupla é a que você quer
@@ -84,7 +84,8 @@ def extract_references_from_pdfs(input_files, references_dict, pages_to_extract=
                     if page_number < len(reader):
                         page = reader[page_number]
                         text = page.get_text()  # Extraindo o texto da página
-                        # logging.info(text)
+                        if page_number == 38:
+                            logging.info(text)
                         found_values = extract_info_from_text(references_dict, text)
                         for value in found_values:
                             value["Página-Arquivo"] = f" P{page_number} - A{count_file}"  # Adiciona o número da página
@@ -140,6 +141,7 @@ def save_table_to_file(dataframe, output_file):
 # Função principal
 def main():
     input_files = ["fatura.pdf"]
+    # input_files = ["fatura-2-3-1.pdf"]
     
     # Dicionário com as referências e expressões regulares
     references_dict = {
@@ -155,15 +157,16 @@ def main():
         "Bairro": r"Bairro:\s+([A-Za-z\s]+)(?=\s+Instalação|$)",
         "Complemento": r"Complemento:\s+([^\n]+)(?=\s+Fatura|$)",
         "N° Fatura": r"Fatura:\s+(\d+)",
-        
         "Classe Principal": r"Classe Principal\s*[^0-9]*\s*(\d+)",
-        "Classe de Consumo": r"(?<=\bClasse de Consumo\b)(?:\D*\d+){1}\D*(\d+)",
+        "Classe de Consumo": r"Classe de Consumo(?:.*?\n)*?.*?(?:\d+\n)(\d+)",
         "Tensão": r"(?<=\bTensão\b)(?:\D*\d+){2}\s*(\S+)",
         "Fase": r"(?<=\bFase\b)(?:\D*\d+){3}\D*(\S+)",
         "Data Fatura": r"(?<=\bData Fat\b)(?:\D*\d+){5}\D*(\S+)",
         "Dias Fatura": r"(?<=\bDias Fat\b)(?:\D*\d+){8}\D*(\S+)",
-        "Data Leitura Anterior": r"(?<=Dta\.Leit\.Ant)(?:\D*\d+){9}\D*(\S+)",
-        "Data Leitura Atual": r"(?<=Dta\.Leit\.Atual)(?:\D*\d+){12}\D*(\S+)",
+        "Data Leitura Anterior": r"(?<=\bDta\.Leit\.Ant\b|\bDat\.Leit\.Ant\b)(?:\D*\d+){9}\D*(\S+)",
+        "Data Leitura Atual": r"(?<=\bDta\.Leit\.Ant\b|\bDat\.Leit\.Ant\b)(?:\D*\d+){12}\D*(\S+)",
+        # "Reaviso": r"(?<=\bReaviso\b)",
+        # "Corte": r"(?<=\bDta\.Leit\.Ant\b|\bDat\.Leit\.Ant\b)(?:\D*\d+){12}\D*(\S+)",
         
         # "V.T.: Icms(BaseCalculo)": r"ICMS\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)",
         # "V.T.: Icms(Aliquota)": r"ICMS\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)",
