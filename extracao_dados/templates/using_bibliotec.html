@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Document</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <meta name="description" content="">
+        <link rel="stylesheet" href="{{ url_for('static', filename='style/mystyle.css') }}">
+    </head>
+    <body>
+        <div class="card-cente">
+            <div class="sub-card">
+                <img src="{{url_for('static',filename='images/image1.jpg')}}" class="responsive-img" width="500" alt="Minha Figura">
+                <form action="/" class="form-custom" action="/upload" enctype="multipart/form-data">
+                    <div class="file-field input-field">
+                        <div class="btn blue darken-2 waves-effect">
+                            <i class="large material-icons right">backup</i>
+                            <span>Escolher Arquivo</span>
+                            <input type="file" multiple="multiple">
+                        </div>
+                        <div class="file-path-wrapper">
+                            <input class="file-path validate" type="file" multiple="multiple" placeholder="Arquivos Carregados">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn waves-effect waves-light blue darken-2" type="submit" name="action">
+                        Extrair dados
+                    </button>
+                    <div class="row form-custom">
+                        {% for file in uploaded_files%}
+                        <li class="collection-item">
+                            <button class="btn white text-color-dark" type="submit" name="action" action="{{ url_for('delete_file', filename=file) }}">
+                                {{file}}
+                                <i class="material-icons" style="color:#000;">delete_forever</i>
+                            </button>
+                        </li>
+                        {%endfor%}
+                       
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+        <script src="{{url_for('static',filename='js/script.js')}}"></script>
+    </body>
+</html>
