@@ -3,12 +3,13 @@ import re
 import pandas as pd
 import logging
 import fitz
+from datetime import date
 
 # Configuração do logger
 logging.basicConfig(level=logging.INFO, format="%(levelname)s -----> %(message)s ")
 
 def extract_info_from_text(patterns, text):
-    results = []  # Lista para armazenar os resultados encontrados
+    results = []  # Lista para armazenar os arquivo encontrados
     client_info = {}  # Dicionário temporário para armazenar as informações do cliente
     client_number = 1
     while True:
@@ -32,7 +33,6 @@ def extract_info_from_text(patterns, text):
                         client_info[key] = match[client_number - 1].strip()  # Ajuste para acessar o item correto
                     else:
                         client_info[key] = None  # Se não houver valor suficiente
-
             else:
                 client_info[key] = None  # Caso não encontre, registra como None
 
@@ -53,7 +53,6 @@ def extract_info_from_text(patterns, text):
             break
 
     return results
-
 
 def extract_references_from_pdfs(input_files, references_dict, pages_to_extract=None, max_pages=None, start_page=0):
     extracted_data = []
@@ -85,7 +84,7 @@ def extract_references_from_pdfs(input_files, references_dict, pages_to_extract=
                         page = reader[page_number]
                         text = page.get_text()  # Extraindo o texto da página
                         # if page_number == 38:
-                        logging.info(text)
+                        # logging.info(text)
                         found_values = extract_info_from_text(references_dict, text)
                         for value in found_values:
                             value["Página-Arquivo"] = f" P{page_number} - A{count_file}"  # Adiciona o número da página
@@ -94,7 +93,7 @@ def extract_references_from_pdfs(input_files, references_dict, pages_to_extract=
                 count_file += 1
 
             else:
-                logging.info(f"Arquivo {file} não suportado..")
+                logging.info(f"Arquivo {file} não suportado ou arquivo não existe")
 
         except Exception as e:
             logging.error(f"Erro ao processar o arquivo {file}: {e}")
@@ -131,36 +130,35 @@ def create_table(extracted_data, references_dict):
     return df
 
 def save_table_to_file(dataframe, output_file):
+    date_now = date.today()
     try:
         # Salva o DataFrame em um arquivo Excel
-        return dataframe.to_excel(output_file, index=False, sheet_name="Base de dados")
+        return dataframe.to_excel( f"{date_now}-" + output_file, index=False, sheet_name="Base de dados")
         # logging.info(f"Dados salvos com sucesso no arquivo Excel: {output_file}")
     except Exception as e:
         logging.error(f"Erro ao salvar o arquivo Excel: {e}")
 
-# Função principal
-import logging
-
-def main(list_input_files=None, references_dict=None, name_output_file="ArquivosExtraidos.xlsx", pages_to_extract=None, max_pages=None, start_page=0):
-    try:
-        # Extração de dados do PDF
-        extracted_data = extract_references_from_pdfs(
-            list_input_files, references_dict, start_page=start_page, max_pages=max_pages, pages_to_extract=pages_to_extract
-        )
-    except Exception as e:
-        logging.error(f"Erro ao extrair referências dos PDFs: {e}")
-        return None  # Ou um valor padrão
-
-    try:
-        # Preparação da tabela
-        df = create_table(extracted_data, references_dict)
-    except Exception as e:
-        logging.error(f"Erro ao criar a tabela: {e}")
-        return None  # Ou um valor padrão
-
-    try:
-        # Salvar os dados no Excel
-        return save_table_to_file(df, name_output_file)
-    except Exception as e:
-        logging.error(f"Erro ao salvar a tabela no arquivo Excel: {e}")
-        return None  # Ou um valor padrão
+def tariffs_grouped(
+    list_input_files=None,
+    references_dict= None,
+    name_output_file="ArquivosExtraidos.xlsx",
+    pages_to_extract=None,
+    max_pages=None,
+    start_page=1
+    ):
+    
+    if list_input_files is None:
+        return "Nenhum Arquivo de Entrada fornecido."
+    else:
+        try:
+            # Extração de dados do PDF
+            extracted_data = extract_references_from_pdfs(
+                list_input_files, references_dict, start_page=start_page, max_pages=max_pages, pages_to_extract=pages_to_extract
+            )
+            df = create_table(extracted_data, references_dict)
+            logging.info(f"Dados salvos com sucesso no arquivo Excel: {name_output_file}")
+            file_save = save_table_to_file(df, name_output_file)
+            return file_save
+        except Exception as e:
+            logging.error(f"Erro ao extrair referências dos PDFs: {e}")
+            return None  # Ou um valor padrão

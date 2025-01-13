@@ -13,19 +13,19 @@
         <div class="card-cente">
             <div class="sub-card">
                 <img src="{{url_for('static',filename='images/image1.jpg')}}" class="responsive-img" width="500" alt="Minha Figura">
-                <form action="/upload" class="form-custom" enctype="multipart/form-data">
+                <form action="/data_extraction{{files}}" class="form-custom" enctype="multipart/form-data" >
                     <div class="file-field input-field">
                         <div class="btn blue darken-2 waves-effect">
                             <i class="large material-icons right">backup</i>
                             <span>Escolher Arquivo</span>
-                            <input type="file" multiple="multiple" name="file">
+                            <input type="file" multiple="multiple" name="file" >
                         </div>
                     </div>
                     <button class="btn waves-effect waves-light blue darken-2" type="submit" >
                         Extrair dados
                     </button>
                     <div class="row form-custom">
-                        {% for file in files_uploads%}
+                        {% for file in files%}
                         <li class="collection-item">
                             <a href="/delete/{{ file }}" class="btn white text-color-dark" >
                                 {{file}}
